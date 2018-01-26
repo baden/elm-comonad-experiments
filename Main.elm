@@ -2,135 +2,59 @@ module Main exposing (main)
 
 import Html exposing (Html)
 import Html.Events
-import Html exposing (Html)
+import Time exposing (Time, second)
 
 
-{-| Pack together the current value along with a function to view said value.
-We can specialize the `a` to be `Html a`
-and get something that works for top level programs.
-We can also not do that.
-We can describe many UIs and they don't have to be `Html a`.
--}
-type alias Store s a =
-    { here : s
-    , view : s -> a
+type alias Program model =
+    { commands : model -> Cmd model
+    , model : model
+    , subscriptions : model -> Sub model
+    , view : model -> Html model
     }
 
 
-{-| Transform the view.
-Useful when you want to change the view of an already defined store.
+{-| Create a program from an alternative program.
 -}
-map : (a -> b) -> Store s a -> Store s b
-map f store =
-    { store | view = f << store.view }
-
-
-{-| Replace the view.
-A common pattern is to just replace the old view without depending on it:
-`set x = map (\_ -> x)`
--}
-set : b -> Store m a -> Store m b
-set b store =
-    { store | view = always b }
-
-
-{-| Create a new store where the view is another store.
-Gives us the lazy unfolding of all future states of a given store.
--}
-duplicate : Store s a -> Store s (Store s a)
-duplicate store =
-    { store | view = \next -> { here = next, view = store.view } }
-
-
-{-| View the current value.
--}
-extract : Store s a -> a
-extract store =
-    store.view store.here
-
-
-{-| Move to the new given value.
-This is how we make progress in the UI.
--}
-move : s -> Store s a -> Store s a
-move s store =
-    (duplicate store).view s
-
-
-toBeginnerProgram :
-    Store s (Html a)
-    -> { model : Store s (Html a)
-       , update : s -> Store s (Html a) -> Store s (Html a)
-       , view : Store s (Html a) -> Html a
-       }
-toBeginnerProgram store =
-    { model = store
-    , update = move
-    , view = extract
-    }
-
-
-
--- toProgram :
---     Store s (Html a)
---     -> { model : Store s (Html a)
---        , update : s -> Store s (Html a) -> Store s (Html a)
---        , view : Store s (Html a) -> Html a
---        }
-
-
-toProgram store =
-    { init = store ! []
-    , update = \msg model -> move msg model ! []
-    , view = extract
-    , subscriptions = subscriptions
-    }
+program : Program model -> Platform.Program Never model model
+program { commands, model, subscriptions, view } =
+    Html.program
+        { init = ( model, commands model )
+        , subscriptions = subscriptions
+        , update = \model _ -> ( model, commands model )
+        , view = view
+        }
 
 
 
 -- Application
--- main : Program Never (Env Model (Model -> Html Model)) Model
 
 
-beginnerProgram2 :
-    { model : model
-    , view : model -> Html msg
-    , update : msg -> model -> model
-    }
-    -> Program Never model msg
-beginnerProgram2 { model, view, update } =
-    Html.program
-        { init = model ! []
-        , update = \msg model -> update msg model ! []
-        , view = view
+main : Platform.Program Never Model Model
+main =
+    program
+        { commands = \m -> Cmd.none
+        , model = Model 0 0
         , subscriptions = subscriptions
+        , view = view
         }
 
 
-main : Program Never (Store Model (Html Model)) Model
-main =
-    -- beginnerProgram2
-    --     (toBeginnerProgram { here = init, view = view })
-    Html.program <|
-        toProgram
-            { here = init, view = view }
-
-
 type alias Model =
-    { counter : Int }
+    { counter : Int
+    , time : Time
+    }
 
 
-subscriptions s =
-    let
-        _ =
-            Debug.log "s=" s
-    in
-        Sub.none
+subscriptions : Model -> Sub Model
+subscriptions model =
+    -- Time.every second (\t -> setTime t model)
+    Time.every second (flip setTime model)
 
 
 init : Model
 init =
     { counter = 0
+    , time = 0
     }
 
 
@@ -142,6 +66,11 @@ increment m =
 decrement : Model -> Model
 decrement m =
     { m | counter = m.counter - 1 }
+
+
+setTime : Time -> Model -> Model
+setTime t m =
+    { m | time = t }
 
 
 view : Model -> Html Model
