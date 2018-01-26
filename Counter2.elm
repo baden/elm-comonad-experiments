@@ -1,4 +1,4 @@
-module Counter1 exposing (..)
+module Counter2 exposing (..)
 
 import Html exposing (Html)
 import Html.Events
@@ -6,6 +6,11 @@ import Html.Events
 
 type alias Model =
     { counter : Int
+    }
+
+
+type alias Config msg =
+    { doIt : msg
     }
 
 
@@ -24,19 +29,25 @@ decrement m =
     { m | counter = m.counter - 1 }
 
 
-view : Model -> Html Model
-view model =
+view : Config pmsg -> Model -> Html ( Maybe pmsg, Model )
+view config model =
     Html.div
         []
         [ Html.span []
             [ Html.text "Counter1" ]
         , Html.button
-            [ Html.Events.onClick (decrement model) ]
+            [ Html.Events.onClick <| ( Nothing, decrement model ) ]
             [ Html.text "-" ]
         , Html.span
             []
             [ Html.text <| toString model ]
         , Html.button
-            [ Html.Events.onClick (increment model) ]
+            [ Html.Events.onClick <| ( Nothing, increment model ) ]
             [ Html.text "+" ]
+        , Html.span
+            []
+            [ Html.text " toParent:" ]
+        , Html.button
+            [ Html.Events.onClick <| ( Just config.doIt, model ) ]
+            [ Html.text "Do it!" ]
         ]

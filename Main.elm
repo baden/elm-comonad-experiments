@@ -6,6 +6,7 @@ import Html exposing (Html)
 -- import Html.Events
 
 import Counter1
+import Counter2
 import Timer
 
 
@@ -46,6 +47,7 @@ main =
 
 type alias Model =
     { counter1 : Counter1.Model
+    , counter2 : Counter2.Model
     , timer : Timer.Model
     }
 
@@ -62,6 +64,7 @@ commands model =
 init : Model
 init =
     { counter1 = Counter1.init
+    , counter2 = Counter2.init
     , timer = Timer.init
     }
 
@@ -69,6 +72,11 @@ init =
 setCounter1Model : Counter1.Model -> Model -> Model
 setCounter1Model cm model =
     { model | counter1 = cm }
+
+
+setCounter2Model : Counter2.Model -> Model -> Model
+setCounter2Model cm model =
+    { model | counter2 = cm }
 
 
 setTimerModel : Timer.Model -> Model -> Model
@@ -83,6 +91,11 @@ view model =
         [ Html.text "Counter1:"
         , Counter1.view model.counter1
             |> Html.map (flip setCounter1Model model)
+        , Counter2.view { doIt = (setCounter2Model Counter2.init model) } model.counter2
+            |> Html.map
+                (\( pcmd, cm ) ->
+                    Maybe.withDefault (setCounter2Model cm model) pcmd
+                )
         , Html.div [] [ Html.text <| "Model: " ++ toString model ]
         ]
 
