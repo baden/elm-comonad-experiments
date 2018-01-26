@@ -8,6 +8,7 @@ import Html exposing (Html)
 import Counter1
 import Counter2
 import Timer
+import Delay
 
 
 type alias Program model =
@@ -49,6 +50,7 @@ type alias Model =
     { counter1 : Counter1.Model
     , counter2 : Counter2.Model
     , timer : Timer.Model
+    , delay : Delay.Model
     }
 
 
@@ -58,7 +60,9 @@ commands model =
         _ =
             Debug.log "commands" model
     in
-        Cmd.none
+        Cmd.batch
+            [ Delay.commands model.delay |> Cmd.map (\dm -> { model | delay = dm })
+            ]
 
 
 init : Model
@@ -66,6 +70,7 @@ init =
     { counter1 = Counter1.init
     , counter2 = Counter2.init
     , timer = Timer.init
+    , delay = Delay.init
     }
 
 
@@ -96,6 +101,7 @@ view model =
                 (\( pcmd, cm ) ->
                     Maybe.withDefault (setCounter2Model cm model) pcmd
                 )
+        , Delay.view model.delay |> Html.map (\dm -> { model | delay = dm })
         , Html.div [] [ Html.text <| "Model: " ++ toString model ]
         ]
 
