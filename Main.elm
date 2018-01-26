@@ -1,8 +1,12 @@
 module Main exposing (main)
 
 import Html exposing (Html)
-import Html.Events
-import Time exposing (Time, second)
+
+
+-- import Html.Events
+
+import Counter1
+import Timer
 
 
 type alias Program model =
@@ -26,64 +30,66 @@ program { commands, model, subscriptions, view } =
 
 
 
+-- update1 : m -> a -> ( m, Cmd m )
 -- Application
 
 
 main : Platform.Program Never Model Model
 main =
     program
-        { commands = \m -> Cmd.none
-        , model = Model 0 0
+        { commands = commands
+        , model = init
         , subscriptions = subscriptions
         , view = view
         }
 
 
 type alias Model =
-    { counter : Int
-    , time : Time
+    { counter1 : Counter1.Model
+    , timer : Timer.Model
     }
 
 
-subscriptions : Model -> Sub Model
-subscriptions model =
-    -- Time.every second (\t -> setTime t model)
-    Time.every second (flip setTime model)
+commands : Model -> Cmd Model
+commands model =
+    let
+        _ =
+            Debug.log "commands" model
+    in
+        Cmd.none
 
 
 init : Model
 init =
-    { counter = 0
-    , time = 0
+    { counter1 = Counter1.init
+    , timer = Timer.init
     }
 
 
-increment : Model -> Model
-increment m =
-    { m | counter = m.counter + 1 }
+setCounter1Model : Counter1.Model -> Model -> Model
+setCounter1Model cm model =
+    { model | counter1 = cm }
 
 
-decrement : Model -> Model
-decrement m =
-    { m | counter = m.counter - 1 }
-
-
-setTime : Time -> Model -> Model
-setTime t m =
-    { m | time = t }
+setTimerModel : Timer.Model -> Model -> Model
+setTimerModel tm model =
+    { model | timer = tm }
 
 
 view : Model -> Html Model
 view model =
     Html.div
         []
-        [ Html.button
-            [ Html.Events.onClick (decrement model) ]
-            [ Html.text "-" ]
-        , Html.div
-            []
-            [ Html.text <| toString model ]
-        , Html.button
-            [ Html.Events.onClick (increment model) ]
-            [ Html.text "+" ]
+        [ Html.text "Counter1:"
+        , Counter1.view model.counter1
+            |> Html.map (flip setCounter1Model model)
+        , Html.div [] [ Html.text <| "Model: " ++ toString model ]
+        ]
+
+
+subscriptions : Model -> Sub Model
+subscriptions model =
+    Sub.batch
+        [ Timer.subscriptions model.timer
+            |> Sub.map (flip setTimerModel model)
         ]
