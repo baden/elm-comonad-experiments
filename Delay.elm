@@ -22,19 +22,19 @@ after time msg =
         |> Task.perform (always msg)
 
 
-commands : Model -> Cmd Model
+commands : Model -> Cmd (Model -> Model)
 commands model =
     case model of
         1 ->
-            after 3000 2
+            after 3000 (always 2)
 
         _ ->
             Cmd.none
 
 
-view : Model -> Html Model
+view : Model -> Html (Model -> Model)
 view model =
     div []
-        [ button [ onClick 1 ] [ text "Press me for delayed command" ]
+        [ button [ onClick (always 1) ] [ text "Press me for delayed command" ]
         , span [] [ text <| toString model ]
         ]

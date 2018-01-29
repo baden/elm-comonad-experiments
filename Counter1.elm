@@ -24,19 +24,19 @@ decrement m =
     { m | counter = m.counter - 1 }
 
 
-view : Model -> Html Model
+view : Model -> Html (Model -> Model)
 view model =
     Html.div
         []
         [ Html.span []
             [ Html.text "Counter1" ]
         , Html.button
-            [ Html.Events.onClick (decrement model) ]
+            [ Html.Events.onClick decrement ]
             [ Html.text "-" ]
         , Html.span
             []
             [ Html.text <| toString model ]
         , Html.button
-            [ Html.Events.onClick (increment model) ]
+            [ Html.Events.onClick increment ]
             [ Html.text "+" ]
         ]

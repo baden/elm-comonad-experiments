@@ -29,25 +29,25 @@ decrement m =
     { m | counter = m.counter - 1 }
 
 
-view : Config pmsg -> Model -> Html ( Maybe pmsg, Model )
+view : Config pmsg -> Model -> Html ( Maybe pmsg, Model -> Model )
 view config model =
     Html.div
         []
         [ Html.span []
             [ Html.text "Counter1" ]
         , Html.button
-            [ Html.Events.onClick <| ( Nothing, decrement model ) ]
+            [ Html.Events.onClick <| ( Nothing, decrement ) ]
             [ Html.text "-" ]
         , Html.span
             []
             [ Html.text <| toString model ]
         , Html.button
-            [ Html.Events.onClick <| ( Nothing, increment model ) ]
+            [ Html.Events.onClick <| ( Nothing, increment ) ]
             [ Html.text "+" ]
         , Html.span
             []
             [ Html.text " toParent:" ]
         , Html.button
-            [ Html.Events.onClick <| ( Just config.doIt, model ) ]
+            [ Html.Events.onClick <| ( Just config.doIt, identity ) ]
             [ Html.text "Do it!" ]
         ]
