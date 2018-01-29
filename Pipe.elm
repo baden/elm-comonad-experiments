@@ -1,4 +1,13 @@
-module Pipe exposing (Updater, program)
+module Pipe
+    exposing
+        ( Updater
+        , program
+        , Lens
+        , lensUpdater
+        , view
+        , commands
+        , subscriptions
+        )
 
 import Html exposing (Html)
 
@@ -32,3 +41,56 @@ program { commands, model, subscriptions, view } =
                     ( new_model, commands new_model )
         , view = view
         }
+
+
+type alias Lens model value =
+    { get : model -> value
+    , set : value -> model -> model
+    }
+
+
+lensUpdater : Lens parentmodel childmodel -> Updater childmodel -> Updater parentmodel
+lensUpdater lens child_updater =
+    \m -> (m |> lens.get |> child_updater |> lens.set) m
+
+
+
+-- analogue
+-- view view lens model =
+--     model
+--         |> lens.get
+--         |> view
+--         |> Html.map (lensUpdater lens)
+
+
+view :
+    (childmodel -> Html (Updater childmodel))
+    -> Lens parentmodel childmodel
+    -> parentmodel
+    -> Html (Updater parentmodel)
+view view lens =
+    lens.get
+        >> view
+        >> Html.map (lensUpdater lens)
+
+
+commands :
+    (childmodel -> Cmd (Updater childmodel))
+    -> Lens parentmodel childmodel
+    -> parentmodel
+    -> Cmd (Updater parentmodel)
+commands commands lens =
+    lens.get
+        >> commands
+        >> Cmd.map (lensUpdater lens)
+
+
+subscriptions :
+    (childmodel -> Sub (Updater childmodel))
+    -> Lens parentmodel childmodel
+    -> parentmodel
+    -> Sub (Updater parentmodel)
+subscriptions subscriptions lens =
+    lens.get
+        >> subscriptions
+        >> Sub.map (lensUpdater lens)

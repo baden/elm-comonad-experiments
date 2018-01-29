@@ -11,10 +11,12 @@ type alias Model =
     }
 
 
+reset : Model -> Model
 reset m =
     { m | time = 0 }
 
 
+increment : Model -> Model
 increment m =
     { m | time = m.time + 1 }
 

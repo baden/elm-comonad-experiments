@@ -1,11 +1,12 @@
 module Main exposing (main)
 
 import Html exposing (Html)
-import Pipe exposing (Updater)
+import Pipe exposing (Updater, Lens, lensUpdater)
 import Counter1
 import Counter2
 import Timer
 import Delay
+import FullStack
 
 
 main : Program Never Model (Updater Model)
@@ -24,18 +25,8 @@ type alias Model =
     , counter2_pcmd : Int
     , timer : Timer.Model
     , delay : Delay.Model
+    , fullstack : FullStack.Model
     }
-
-
-commands : Model -> Cmd (Updater Model)
-commands model =
-    -- let
-    --     _ =
-    --         Debug.log "commands" model
-    -- in
-    Cmd.batch
-        [ Delay.commands model.delay |> Cmd.map delayUpdater
-        ]
 
 
 init : Model
@@ -45,17 +36,13 @@ init =
     , counter2_pcmd = 0
     , timer = Timer.init
     , delay = Delay.init
+    , fullstack = FullStack.init
     }
 
 
-counter1Updater : Updater Counter1.Model -> Updater Model
-counter1Updater counter1_updater =
-    \m -> { m | counter1 = counter1_updater m.counter1 }
-
-
-counter2Updater : Updater Counter2.Model -> Updater Model
-counter2Updater counter2_updater =
-    \m -> { m | counter2 = counter2_updater m.counter2 }
+counter1 : Lens Model Counter1.Model
+counter1 =
+    Lens .counter1 (\v m -> { m | counter1 = v })
 
 
 
@@ -81,14 +68,19 @@ nestedCounter2Updater ( pcmd, cm_updater ) =
                 parent_updater << updater
 
 
-delayUpdater : Updater Delay.Model -> Updater Model
-delayUpdater dm_updater =
-    \m -> { m | delay = dm_updater m.delay }
+delay : Lens Model Delay.Model
+delay =
+    Lens .delay (\v m -> { m | delay = v })
 
 
-timerUpdater : Updater Timer.Model -> Updater Model
-timerUpdater timer_updater =
-    \m -> { m | timer = timer_updater m.timer }
+timer : Lens Model Timer.Model
+timer =
+    Lens .timer (\v m -> { m | timer = v })
+
+
+fullstackUpdater : Updater FullStack.Model -> Updater Model
+fullstackUpdater child_updater =
+    \m -> { m | fullstack = child_updater m.fullstack }
 
 
 parentCmd : Updater Model
@@ -96,26 +88,36 @@ parentCmd m =
     { m | counter2_pcmd = m.counter2_pcmd + 1 }
 
 
+
+-- view subscriptions
+
+
 view : Model -> Html (Updater Model)
 view model =
     Html.div
         []
         [ Html.text "Counter1:"
-        , Counter1.view model.counter1
-            |> Html.map counter1Updater
+        , Pipe.view Counter1.view counter1 model
         , Html.span [] [ Html.text <| toString model.counter2_pcmd ]
         , Counter2.view { doIt = parentCmd } model.counter2
             |> Html.map nestedCounter2Updater
-        , Delay.view model.delay
-            |> Html.map delayUpdater
-        , Timer.view model.timer
-            |> Html.map timerUpdater
+        , Pipe.view Delay.view delay model
+        , Pipe.view Timer.view timer model
         , Html.div [] [ Html.text <| "Model: " ++ toString model ]
+        , FullStack.view model.fullstack
+            |> Html.map fullstackUpdater
+        ]
+
+
+commands : Model -> Cmd (Updater Model)
+commands model =
+    Cmd.batch
+        [ Pipe.commands Delay.commands delay model
         ]
 
 
 subscriptions : Model -> Sub (Updater Model)
 subscriptions model =
     Sub.batch
-        [ Timer.subscriptions model.timer |> Sub.map timerUpdater
+        [ Pipe.subscriptions Timer.subscriptions timer model
         ]
