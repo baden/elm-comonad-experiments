@@ -6,6 +6,7 @@ import Html.Attributes exposing (disabled)
 import Process
 import Task
 import Time exposing (Time, millisecond)
+import Pipe exposing (Updater)
 
 
 type Model
@@ -24,7 +25,7 @@ after time msg =
         |> Task.perform (always msg)
 
 
-commands : Model -> Cmd (Model -> Model)
+commands : Model -> Cmd (Updater Model)
 commands model =
     case model of
         CommandDelay ->
@@ -34,7 +35,7 @@ commands model =
             Cmd.none
 
 
-view : Model -> Html (Model -> Model)
+view : Model -> Html (Updater Model)
 view model =
     let
         disabled_key =

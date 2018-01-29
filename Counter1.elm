@@ -1,5 +1,6 @@
 module Counter1 exposing (..)
 
+import Pipe exposing (Updater)
 import Html exposing (Html)
 import Html.Events
 
@@ -14,17 +15,17 @@ init =
     { counter = 0 }
 
 
-increment : Model -> Model
+increment : Updater Model
 increment m =
     { m | counter = m.counter + 1 }
 
 
-decrement : Model -> Model
+decrement : Updater Model
 decrement m =
     { m | counter = m.counter - 1 }
 
 
-view : Model -> Html (Model -> Model)
+view : Model -> Html (Updater Model)
 view model =
     Html.div
         []

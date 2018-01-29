@@ -1,50 +1,16 @@
 module Main exposing (main)
 
 import Html exposing (Html)
-
-
--- import Html.Events
-
+import Pipe exposing (Updater)
 import Counter1
 import Counter2
 import Timer
 import Delay
 
 
-type alias Program model =
-    { commands : model -> Cmd (model -> model)
-    , model : model
-    , subscriptions : model -> Sub (model -> model)
-    , view : model -> Html (model -> model)
-    }
-
-
-{-| Create a program from an alternative program.
--}
-program : Program model -> Platform.Program Never model (model -> model)
-program { commands, model, subscriptions, view } =
-    Html.program
-        { init = ( model, commands model )
-        , subscriptions = subscriptions
-        , update =
-            \updater model ->
-                let
-                    new_model =
-                        updater model
-                in
-                    ( new_model, commands new_model )
-        , view = view
-        }
-
-
-
--- update1 : m -> a -> ( m, Cmd m )
--- Application
-
-
-main : Platform.Program Never Model (Model -> Model)
+main : Program Never Model (Updater Model)
 main =
-    program
+    Pipe.program
         { commands = commands
         , model = init
         , subscriptions = subscriptions
@@ -61,7 +27,7 @@ type alias Model =
     }
 
 
-commands : Model -> Cmd (Model -> Model)
+commands : Model -> Cmd (Updater Model)
 commands model =
     -- let
     --     _ =
@@ -82,12 +48,12 @@ init =
     }
 
 
-counter1Updater : (Counter1.Model -> Counter1.Model) -> Model -> Model
+counter1Updater : Updater Counter1.Model -> Updater Model
 counter1Updater counter1_updater =
     \m -> { m | counter1 = counter1_updater m.counter1 }
 
 
-counter2Updater : (Counter2.Model -> Counter2.Model) -> Model -> Model
+counter2Updater : Updater Counter2.Model -> Updater Model
 counter2Updater counter2_updater =
     \m -> { m | counter2 = counter2_updater m.counter2 }
 
@@ -100,9 +66,8 @@ counter2Updater counter2_updater =
 
 
 nestedCounter2Updater :
-    ( Maybe (Model -> Model), Counter2.Model -> Counter2.Model )
-    -> Model
-    -> Model
+    ( Maybe (Updater Model), Updater Counter2.Model )
+    -> Updater Model
 nestedCounter2Updater ( pcmd, cm_updater ) =
     let
         updater m =
@@ -116,22 +81,22 @@ nestedCounter2Updater ( pcmd, cm_updater ) =
                 parent_updater << updater
 
 
-delayUpdater : (Delay.Model -> Delay.Model) -> Model -> Model
+delayUpdater : Updater Delay.Model -> Updater Model
 delayUpdater dm_updater =
     \m -> { m | delay = dm_updater m.delay }
 
 
-timerUpdater : (Timer.Model -> Timer.Model) -> Model -> Model
+timerUpdater : Updater Timer.Model -> Updater Model
 timerUpdater timer_updater =
     \m -> { m | timer = timer_updater m.timer }
 
 
-parentCmd : Model -> Model
+parentCmd : Updater Model
 parentCmd m =
     { m | counter2_pcmd = m.counter2_pcmd + 1 }
 
 
-view : Model -> Html (Model -> Model)
+view : Model -> Html (Updater Model)
 view model =
     Html.div
         []
@@ -143,11 +108,13 @@ view model =
             |> Html.map nestedCounter2Updater
         , Delay.view model.delay
             |> Html.map delayUpdater
+        , Timer.view model.timer
+            |> Html.map timerUpdater
         , Html.div [] [ Html.text <| "Model: " ++ toString model ]
         ]
 
 
-subscriptions : Model -> Sub (Model -> Model)
+subscriptions : Model -> Sub (Updater Model)
 subscriptions model =
     Sub.batch
         [ Timer.subscriptions model.timer |> Sub.map timerUpdater

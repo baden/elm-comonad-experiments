@@ -11,3 +11,7 @@
 Показан пример наследования в view, commands и subscription.
 
 [Пример](stage03.html)
+
+### Що далі
+
+Я хочу спробувати додати Lens (Optics)

@@ -2,6 +2,7 @@ module Counter2 exposing (..)
 
 import Html exposing (Html)
 import Html.Events
+import Pipe exposing (Updater)
 
 
 type alias Model =
@@ -19,17 +20,17 @@ init =
     { counter = 0 }
 
 
-increment : Model -> Model
+increment : Updater Model
 increment m =
     { m | counter = m.counter + 1 }
 
 
-decrement : Model -> Model
+decrement : Updater Model
 decrement m =
     { m | counter = m.counter - 1 }
 
 
-view : Config pmsg -> Model -> Html ( Maybe pmsg, Model -> Model )
+view : Config pmsg -> Model -> Html ( Maybe pmsg, Updater Model )
 view config model =
     Html.div
         []
