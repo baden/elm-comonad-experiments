@@ -50,4 +50,10 @@ view config model =
         , Html.button
             [ Html.Events.onClick <| ( Just config.doIt, identity ) ]
             [ Html.text "Do it!" ]
+        , Html.span
+            []
+            [ Html.text " with sideeffect:" ]
+        , Html.button
+            [ Html.Events.onClick <| ( Just config.doIt, increment ) ]
+            [ Html.text "Do it!" ]
         ]

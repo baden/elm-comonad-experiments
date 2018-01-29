@@ -36,17 +36,20 @@ commands model =
 
 view : Model -> Html (Model -> Model)
 view model =
-    div []
-        [ button
-            [ onClick (always CommandDelay)
-            , disabled <|
-                case model of
-                    CommandDelay ->
-                        True
+    let
+        disabled_key =
+            case model of
+                CommandDelay ->
+                    True
 
-                    _ ->
-                        False
+                _ ->
+                    False
+    in
+        div []
+            [ button
+                [ onClick (always CommandDelay)
+                , disabled disabled_key
+                ]
+                [ text "Press me for delayed command" ]
+            , span [] [ text <| toString model ]
             ]
-            [ text "Press me for delayed command" ]
-        , span [] [ text <| toString model ]
-        ]
