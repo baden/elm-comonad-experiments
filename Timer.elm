@@ -29,7 +29,7 @@ init =
 
 subscriptions : Model -> Sub (Updater Model)
 subscriptions model =
-    Time.every second <| always increment
+    Time.every (1 * second) <| always increment
 
 
 view : Model -> Html (Updater Model)

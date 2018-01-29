@@ -11,7 +11,8 @@ import Pipe exposing (Updater)
 
 type Model
     = Value Int
-    | CommandDelay
+    | StartDelay
+    | DelayInProgress
 
 
 init : Model
@@ -25,14 +26,26 @@ after time msg =
         |> Task.perform (always msg)
 
 
-commands : Model -> Cmd (Updater Model)
+commands : Model -> ( Model, Cmd (Updater Model) )
 commands model =
     case model of
-        CommandDelay ->
-            after 3000 (always <| Value 2)
+        StartDelay ->
+            let
+                _ =
+                    Debug.log "start delay" 0
+            in
+                ( DelayInProgress, after 3000 (always <| Value 2) )
+
+        DelayInProgress ->
+            ( model, Cmd.none )
 
         Value _ ->
-            Cmd.none
+            ( model, Cmd.none )
+
+
+start_delay : Updater Model
+start_delay =
+    (always StartDelay)
 
 
 view : Model -> Html (Updater Model)
@@ -40,15 +53,15 @@ view model =
     let
         disabled_key =
             case model of
-                CommandDelay ->
-                    True
+                Value _ ->
+                    False
 
                 _ ->
-                    False
+                    True
     in
         div []
             [ button
-                [ onClick (always CommandDelay)
+                [ onClick start_delay
                 , disabled disabled_key
                 ]
                 [ text "Press me for delayed command" ]

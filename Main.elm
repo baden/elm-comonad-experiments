@@ -109,11 +109,39 @@ view model =
         ]
 
 
-commands : Model -> Cmd (Updater Model)
+commands : Model -> ( Model, Cmd (Updater Model) )
 commands model =
-    Cmd.batch
-        [ Pipe.commands Delay.commands delay model
-        ]
+    let
+        -- lens =
+        --     delay
+        ( delay_model, delay_cmds ) =
+            Delay.commands model.delay
+
+        -- |> Cmd.map (lensUpdater lens)
+        _ =
+            Debug.log "pipe1" ( delay_model, delay_cmds )
+    in
+        ( { model | delay = delay_model }
+          -- , Cmd.none
+        , Cmd.batch
+            [ delay_cmds
+                |> Cmd.map
+                    (\delay_updater ->
+                        \m ->
+                            let
+                                _ =
+                                    Debug.log "subdelay" 0
+                            in
+                                { m | delay = delay_updater m.delay }
+                    )
+            ]
+        )
+
+
+
+-- Cmd.batch
+--     [ Pipe.commands Delay.commands delay model
+--     ]
 
 
 subscriptions : Model -> Sub (Updater Model)

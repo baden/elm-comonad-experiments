@@ -5,7 +5,7 @@ module Pipe
         , Lens
         , lensUpdater
         , view
-        , commands
+          -- , commands
         , subscriptions
         )
 
@@ -17,7 +17,7 @@ type alias Updater model =
 
 
 type alias Program model =
-    { commands : model -> Cmd (Updater model)
+    { commands : model -> ( model, Cmd (Updater model) )
     , model : model
     , subscriptions : model -> Sub (Updater model)
     , view : model -> Html (Updater model)
@@ -29,16 +29,21 @@ type alias Program model =
 program : Program model -> Platform.Program Never model (model -> model)
 program { commands, model, subscriptions, view } =
     Html.program
-        { init = ( model, commands model )
+        { init =
+            let
+                ( new_model, cmds ) =
+                    commands model
+            in
+                ( new_model, cmds )
         , subscriptions = subscriptions
         , update =
             \updater model ->
                 -- TODO: Ось тут я трохи сумніваюсь у послідовності
                 let
-                    new_model =
-                        updater model
+                    ( new_model, cmds ) =
+                        commands (updater model)
                 in
-                    ( new_model, commands new_model )
+                    ( new_model, cmds )
         , view = view
         }
 
@@ -74,15 +79,16 @@ view view lens =
         >> Html.map (lensUpdater lens)
 
 
-commands :
-    (childmodel -> Cmd (Updater childmodel))
-    -> Lens parentmodel childmodel
-    -> parentmodel
-    -> Cmd (Updater parentmodel)
-commands commands lens =
-    lens.get
-        >> commands
-        >> Cmd.map (lensUpdater lens)
+
+-- commands :
+--     (childmodel -> ( childmodel, Cmd (Updater childmodel) ))
+--     -> Lens parentmodel childmodel
+--     -> parentmodel
+--     -> ( parentmodel, Cmd (Updater parentmodel) )
+-- commands commands lens =
+--     lens.get
+--         >> commands
+--         >> Cmd.map (lensUpdater lens)
 
 
 subscriptions :
