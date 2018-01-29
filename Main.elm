@@ -66,14 +66,9 @@ commands model =
         _ =
             Debug.log "commands" model
     in
-        Cmd.none
-
-
-
--- Cmd.batch
---     [ Delay.commands model.delay
---         |> Cmd.map setDelayModel
---     ]
+        Cmd.batch
+            [ Delay.commands model.delay |> Cmd.map delayUpdater
+            ]
 
 
 init : Model
@@ -85,36 +80,24 @@ init =
     }
 
 
-
--- setCounter1Model : Counter1.Model -> Model -> Model
--- setCounter1Model cm model =
---     { model | counter1 = cm }
--- setCounter2Model : Counter2.Model -> Model -> Model
--- setCounter2Model cm model =
---     { model | counter2 = cm }
-
-
-setTimerModel : Timer.Model -> Model -> Model
-setTimerModel tm model =
-    { model | timer = tm }
-
-
-setDelayModel : Delay.Model -> Model -> Model
-setDelayModel dm model =
-    { model | delay = dm }
-
-
+counter1Updater : (Counter1.Model -> Counter1.Model) -> Model -> Model
 counter1Updater counter1_updater =
     \m -> { m | counter1 = counter1_updater m.counter1 }
 
 
+counter2Updater : (Counter2.Model -> Counter2.Model) -> Model -> Model
 counter2Updater counter2_updater =
     \m -> { m | counter2 = counter2_updater m.counter2 }
 
 
+delayUpdater : (Delay.Model -> Delay.Model) -> Model -> Model
+delayUpdater dm_updater =
+    \m -> { m | delay = dm_updater m.delay }
 
--- setCounter1Model
--- identity
+
+timerUpdater : (Timer.Model -> Timer.Model) -> Model -> Model
+timerUpdater timer_updater =
+    \m -> { m | timer = timer_updater m.timer }
 
 
 view : Model -> Html (Model -> Model)
@@ -134,28 +117,14 @@ view model =
                         (\m -> { m | counter2 = cm_updater m.counter2 })
                         pcmd
                 )
-
-        --
-        -- , Delay.view model.delay
-        --     |> Html.map
-        --         (\dm ->
-        --             let
-        --                 u =
-        --                     \mdl -> { mdl | delay = dm }
-        --             in
-        --                 u
-        --         )
+        , Delay.view model.delay
+            |> Html.map delayUpdater
         , Html.div [] [ Html.text <| "Model: " ++ toString model ]
         ]
 
 
 subscriptions : Model -> Sub (Model -> Model)
 subscriptions model =
-    Sub.none
-
-
-
--- Sub.batch
---     [ Timer.subscriptions model.timer
---         |> Sub.map (flip setTimerModel)
---     ]
+    Sub.batch
+        [ Timer.subscriptions model.timer |> Sub.map timerUpdater
+        ]

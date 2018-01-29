@@ -8,9 +8,8 @@ type alias Model =
     }
 
 
-setTime : Time -> Model -> Model
-setTime t m =
-    { m | time = t }
+increment m =
+    { m | time = m.time + 1 }
 
 
 init : Model
@@ -19,7 +18,6 @@ init =
     }
 
 
-subscriptions : Model -> Sub Model
+subscriptions : Model -> Sub (Model -> Model)
 subscriptions model =
-    -- Time.every second (\t -> setTime t model)
-    Time.every second (flip setTime model)
+    Time.every second <| always increment
