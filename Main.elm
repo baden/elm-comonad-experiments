@@ -14,10 +14,7 @@ import Pipe
         , WorkerCmds
         )
 import Counter1
-
-
--- import Delay
-
+import Delay
 import Process
 import Task
 import Time exposing (Time, millisecond)
@@ -43,7 +40,8 @@ type alias Model =
     -- , counter2 : Counter2.Model
     -- , counter2_pcmd : Int
     -- , timer : Timer.Model
-    -- , delay : Delay.Model
+    , delay : Delay.Model
+
     -- , fullstack : FullStack.Model
     }
 
@@ -62,10 +60,12 @@ init =
       -- , counter2 = Tuple.first Counter2.init
       -- , counter2_pcmd = 0
       -- , timer = Tuple.first Timer.init
-      -- , delay = Tuple.first Delay.init
+      , delay = Tuple.first Delay.init
+
       -- , fullstack = Tuple.first FullStack.init
       }
-    , after 3000 endDelay
+      -- , after 3000 endDelay
+    , Cmd.none
     )
 
 
@@ -73,11 +73,11 @@ endDelay : Worker Model
 endDelay =
     modify_and_cmd
         (\m ->
-            let
-                _ =
-                    Debug.log "Main end delay 1" m
-            in
-                m
+            -- let
+            --     _ =
+            --         Debug.log "Main end delay 1" m
+            -- in
+            m
         )
         (after 3000 endDelay2)
 
@@ -86,11 +86,11 @@ endDelay2 : Worker Model
 endDelay2 =
     modify
         (\m ->
-            let
-                _ =
-                    Debug.log "Main end delay2" m
-            in
-                m
+            -- let
+            --     _ =
+            --         Debug.log "Main end delay2" m
+            -- in
+            m
         )
 
 
@@ -125,9 +125,14 @@ counter1 =
 --                 parent_updater << updater
 --
 --
--- delay : Lens Model Delay.Model
--- delay =
---     Lens .delay (\v m -> { m | delay = v })
+
+
+delay : Lens Model Delay.Model
+delay =
+    Lens .delay (\v m -> { m | delay = v })
+
+
+
 --
 --
 -- timer : Lens Model Timer.Model
@@ -156,7 +161,8 @@ view model =
         -- , Html.span [] [ Html.text <| toString model.counter2_pcmd ]
         -- , Counter2.view { doIt = parentCmd } model.counter2
         --     |> Html.map nestedCounter2Updater
-        -- , Pipe.view Delay.view delay model
+        , Pipe.view Delay.view delay model
+
         -- , Pipe.view Timer.view timer model
         -- , FullStack.view model.fullstack
         --     |> Html.map fullstackUpdater

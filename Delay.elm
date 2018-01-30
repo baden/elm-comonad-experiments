@@ -6,7 +6,7 @@ import Html.Attributes exposing (disabled)
 import Process
 import Task
 import Time exposing (Time, millisecond)
-import Pipe exposing (Updater, Pipe, pure, Worker, modify)
+import Pipe exposing (Updater, Pipe, pure, Worker, modify, modify_and_cmd)
 
 
 type State
@@ -23,17 +23,20 @@ type alias Model =
 
 init : Pipe Model
 init =
-    -- pure (Model Init 0)
-    ( Model Init 0
-    , after 3000 endDelay
-      --     (\m ->
-      --         let
-      --             _ =
-      --                 Debug.log "WTF?" m
-      --         in
-      --             m
-      --     )
-    )
+    pure (Model Init 0)
+
+
+
+-- ( Model Init 0
+-- , after 3000 endDelay
+--   --     (\m ->
+--   --         let
+--   --             _ =
+--   --                 Debug.log "WTF?" m
+--   --         in
+--   --             m
+--   --     )
+-- )
 
 
 after : Time -> msg -> Cmd msg
@@ -44,23 +47,33 @@ after time msg =
 
 startDelay : Worker Model
 startDelay =
-    ( \m -> { m | state = Started }
-      -- , after 3000 endDelay
-    , after 3000
-        (\m ->
-            let
-                _ =
-                    Debug.log "WTF?" m
-            in
-                m
-        )
-      -- , Cmd.none
-    )
+    modify_and_cmd
+        (\m -> { m | state = Started })
+        (after 3000 endDelay)
+
+
+
+-- , after 3000
+--     (\m ->
+--         let
+--             _ =
+--                 Debug.log "WTF?" m
+--         in
+--             m
+--     )
+-- , Cmd.none
 
 
 endDelay : Worker Model
 endDelay =
-    modify (\m -> { m | state = Done })
+    modify
+        (\m ->
+            let
+                _ =
+                    Debug.log "------------------" m
+            in
+                { m | state = Done }
+        )
 
 
 

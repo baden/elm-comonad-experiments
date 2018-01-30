@@ -142,20 +142,20 @@ type alias Lens model value =
 
 lensUpdater : Lens parentmodel childmodel -> Updater childmodel -> Updater parentmodel
 lensUpdater lens child_updater =
-    -- \m -> (m |> lens.get |> child_updater |> lens.set) m
-    \m ->
-        lens.set (child_updater (lens.get m)) m
+    \m -> (m |> lens.get |> child_updater |> lens.set) m
+
+
+
+-- \m ->
+--     lens.set (child_updater (lens.get m)) m
 
 
 lensUpdaterW : Lens parentmodel childmodel -> Worker childmodel -> Worker parentmodel
-lensUpdaterW lens ( child_updater, child_cmd ) =
-    ( \m ->
-        let
-            _ =
-                Debug.log "---updater" m
-        in
-            lens.set (child_updater (lens.get m)) m
-    , WorkerCmds Cmd.none
+lensUpdaterW lens ( child_updater, WorkerCmds child_cmd ) =
+    ( child_updater |> lensUpdater lens
+    , child_cmd
+        |> Cmd.map (lensUpdaterW lens)
+        |> WorkerCmds
     )
 
 
