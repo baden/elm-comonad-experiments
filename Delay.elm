@@ -6,7 +6,7 @@ import Html.Attributes exposing (disabled)
 import Process
 import Task
 import Time exposing (Time, millisecond)
-import Pipe exposing (Updater, Pipe, pure)
+import Pipe exposing (Updater, Pipe, pure, Worker, modify)
 
 
 type Model

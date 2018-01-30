@@ -1,6 +1,6 @@
 module Counter1 exposing (..)
 
-import Pipe exposing (Updater, Pipe, pure)
+import Pipe exposing (Updater, Pipe, pure, Worker, modify, set)
 import Html exposing (Html)
 import Html.Events
 
@@ -15,17 +15,22 @@ init =
     pure { counter = 1 }
 
 
-increment : Updater Model
-increment m =
-    { m | counter = m.counter + 1 }
+increment : Worker Model
+increment =
+    modify (\m -> { m | counter = m.counter + 1 })
 
 
-decrement : Updater Model
-decrement m =
-    { m | counter = m.counter - 1 }
+decrement : Worker Model
+decrement =
+    modify (\m -> { m | counter = m.counter - 1 })
 
 
-view : Model -> Html (Updater Model)
+reset : Worker Model
+reset =
+    set { counter = 0 }
+
+
+view : Model -> Html (Worker Model)
 view model =
     Html.div
         []
@@ -40,4 +45,7 @@ view model =
         , Html.button
             [ Html.Events.onClick increment ]
             [ Html.text "+" ]
+        , Html.button
+            [ Html.Events.onClick reset ]
+            [ Html.text "Clear" ]
         ]
