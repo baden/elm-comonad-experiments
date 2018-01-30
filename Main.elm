@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Html exposing (Html)
-import Pipe exposing (Updater, Lens, lensUpdater)
+import Pipe exposing (Updater, Lens, lensUpdater, Pipe, pure)
 import Counter1
 import Counter2
 import Timer
@@ -29,15 +29,16 @@ type alias Model =
     }
 
 
-init : Model
+init : Pipe Model
 init =
-    { counter1 = Counter1.init
-    , counter2 = Counter2.init
-    , counter2_pcmd = 0
-    , timer = Timer.init
-    , delay = Delay.init
-    , fullstack = FullStack.init
-    }
+    pure
+        { counter1 = Tuple.first Counter1.init
+        , counter2 = Tuple.first Counter2.init
+        , counter2_pcmd = 0
+        , timer = Tuple.first Timer.init
+        , delay = Tuple.first Delay.init
+        , fullstack = Tuple.first FullStack.init
+        }
 
 
 counter1 : Lens Model Counter1.Model

@@ -6,7 +6,7 @@ import Html.Attributes exposing (disabled)
 import Process
 import Task
 import Time exposing (Time, millisecond)
-import Pipe exposing (Updater)
+import Pipe exposing (Updater, Pipe, pure)
 
 
 type Model
@@ -15,9 +15,9 @@ type Model
     | DelayInProgress
 
 
-init : Model
+init : Pipe Model
 init =
-    Value 0
+    pure (Value 0)
 
 
 after : Time -> msg -> Cmd msg

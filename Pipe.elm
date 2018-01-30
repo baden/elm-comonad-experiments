@@ -7,6 +7,8 @@ module Pipe
         , view
         , command
         , subscriptions
+        , Pipe
+        , pure
         )
 
 import Html exposing (Html)
@@ -16,9 +18,18 @@ type alias Updater model =
     model -> model
 
 
+type alias Pipe model =
+    ( model, Cmd (Updater model) )
+
+
+pure : model -> Pipe model
+pure model =
+    ( model, Cmd.none )
+
+
 type alias Program model =
     { commands : model -> ( model, Cmd (Updater model) )
-    , model : model
+    , model : Pipe model
     , subscriptions : model -> Sub (Updater model)
     , view : model -> Html (Updater model)
     }
@@ -31,10 +42,12 @@ program { commands, model, subscriptions, view } =
     Html.program
         { init =
             let
-                ( new_model, cmds ) =
-                    commands model
+                ( init_model, init_cmds ) =
+                    model
             in
-                ( new_model, cmds )
+                ( init_model, Cmd.none )
+
+        -- always (model, Cmd.none)
         , subscriptions = subscriptions
         , update =
             \updater model ->

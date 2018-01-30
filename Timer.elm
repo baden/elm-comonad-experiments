@@ -3,7 +3,7 @@ module Timer exposing (..)
 import Time exposing (Time, second)
 import Html exposing (..)
 import Html.Events exposing (onClick)
-import Pipe exposing (Updater)
+import Pipe exposing (Updater, Pipe, pure)
 
 
 type alias Model =
@@ -21,10 +21,11 @@ increment m =
     { m | time = m.time + 1 }
 
 
-init : Model
+init : Pipe Model
 init =
-    { time = 0
-    }
+    pure
+        { time = 0
+        }
 
 
 subscriptions : Model -> Sub (Updater Model)

@@ -2,7 +2,7 @@ module Counter2 exposing (..)
 
 import Html exposing (Html)
 import Html.Events
-import Pipe exposing (Updater)
+import Pipe exposing (Updater, Pipe, pure)
 
 
 type alias Model =
@@ -15,9 +15,9 @@ type alias Config msg =
     }
 
 
-init : Model
+init : Pipe Model
 init =
-    { counter = 0 }
+    pure { counter = 2 }
 
 
 increment : Updater Model

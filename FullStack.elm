@@ -1,6 +1,6 @@
 module FullStack exposing (..)
 
-import Pipe exposing (Updater)
+import Pipe exposing (Updater, Pipe, pure)
 import Time exposing (Time, second)
 import Html exposing (..)
 import Html.Events exposing (onClick)
@@ -12,11 +12,12 @@ type alias Model =
     }
 
 
-init : Model
+init : Pipe Model
 init =
-    { time = 0
-    , counter = 0
-    }
+    pure
+        { time = 0
+        , counter = 0
+        }
 
 
 simpleUpdater : Updater Model
