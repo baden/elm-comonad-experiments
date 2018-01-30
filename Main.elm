@@ -14,7 +14,10 @@ import Pipe
         , WorkerCmds
         , modify
         , modify_and_cmd
+          -- temporary
         , WorkerCmds
+          -- temporary
+        , nestedUpdater
         )
 import Counter1
 import Delay
@@ -142,44 +145,6 @@ counter2 =
     Lens .counter2 (\v m -> { m | counter2 = v })
 
 
-
--- TODO: Цей зразок тільки як приклад. У реальному житті, можливо треба вертати
--- якось більш розумно
--- Тут не використовується cm_updater якщо є pcmd
--- nestedCounter2Updater :
-
-
-nestedCounter2Updater :
-    ( Maybe (Worker Model), Worker Counter2.Model )
-    -> Worker Model
-nestedCounter2Updater ( pcmd, ( cm_updater, cm_cmds ) ) =
-    -- let
-    --     updater =
-    --         modify (\m -> { m | counter2 = cm_updater m.counter2 })
-    -- in
-    let
-        _ =
-            Debug.log "nestedCounter2Updater" ( pcmd, cm_updater, cm_cmds )
-    in
-        case pcmd of
-            Nothing ->
-                modify
-                    (\m ->
-                        { m
-                            | counter2 = cm_updater m.counter2
-                        }
-                    )
-
-            Just ( parent_updater, parent_cmd ) ->
-                modify
-                    (\m ->
-                        parent_updater
-                            { m
-                                | counter2 = cm_updater m.counter2
-                            }
-                    )
-
-
 view : Model -> Html (Worker Model)
 view model =
     Html.div
@@ -187,8 +152,7 @@ view model =
         [ Html.text "Counter1:"
         , Pipe.view Counter1.view counter1 model
         , Html.span [] [ Html.text "Parent: ", Html.text <| toString model.counter2_pcmd ]
-        , Counter2.view { doIt = parentCmd } model.counter2
-            |> Html.map nestedCounter2Updater
+        , Pipe.view_cb Counter2.view { doIt = parentCmd } counter2 model
         , Pipe.view Delay.view delay model
         , Pipe.view Timer.view timer model
 

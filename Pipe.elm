@@ -5,6 +5,7 @@ module Pipe
         , Lens
         , lensUpdater
         , view
+        , view_cb
         , map
           -- , command
         , subscriptions
@@ -17,6 +18,8 @@ module Pipe
         , set
           -- temporary
         , WorkerCmds
+          -- temporary
+        , nestedUpdater
         )
 
 import Html exposing (Html)
@@ -112,6 +115,30 @@ lensUpdaterW lens ( child_updater, WorkerCmds child_cmd ) =
     )
 
 
+
+-- TODO: Add cmd support
+
+
+nestedUpdater :
+    Lens parentmodel childmodel
+    -> ( Maybe (Worker parentmodel), Worker childmodel )
+    -> Worker parentmodel
+nestedUpdater lens ( pcmd, ( cm_updater, cm_cmds ) ) =
+    case pcmd of
+        Nothing ->
+            modify
+                (\m ->
+                    lens.set (cm_updater (lens.get m)) m
+                )
+
+        Just ( parent_updater, parent_cmd ) ->
+            modify
+                (\m ->
+                    parent_updater
+                        (lens.set (cm_updater (lens.get m)) m)
+                )
+
+
 map : Lens parentmodel childmodel -> Cmd (Worker childmodel) -> Cmd (Worker parentmodel)
 map lens =
     Cmd.map (lensUpdaterW lens)
@@ -128,22 +155,16 @@ view view lens =
         >> Html.map (lensUpdaterW lens)
 
 
-
--- type alias Config msg =
---     { doIt : msg
---     }
---
---
--- view_with_config :
---     Config pmsg
---     -> (childmodel -> Html ( Maybe pmsg, Worker childmodel ))
---     -> Lens parentmodel childmodel
---     -> parentmodel
---     -> Html (Worker parentmodel)
--- view_with_config view config lens =
---     lens.get
---         >> view config
---         >> Html.map (lensUpdaterW lens)
+view_cb :
+    (cfg -> childmodel -> Html ( Maybe (Worker parentmodel), Worker childmodel ))
+    -> cfg
+    -> Lens parentmodel childmodel
+    -> parentmodel
+    -> Html (Worker parentmodel)
+view_cb view cfg lens =
+    lens.get
+        >> view cfg
+        >> Html.map (nestedUpdater lens)
 
 
 subscriptions :

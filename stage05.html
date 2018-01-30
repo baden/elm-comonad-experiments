@@ -8649,78 +8649,160 @@ var _user$project$Pipe$lensUpdater = F3(
 			child_updater(
 				lens.get(m)))(m);
 	});
-var _user$project$Pipe$view = F2(
-	function (view, lens) {
-		return function (_p0) {
-			return A2(
-				_elm_lang$html$Html$map,
-				_user$project$Pipe$lensUpdater(lens),
-				view(
-					lens.get(_p0)));
-		};
-	});
-var _user$project$Pipe$commands = F2(
-	function (commands, lens) {
-		return function (_p1) {
-			return A2(
-				_elm_lang$core$Platform_Cmd$map,
-				_user$project$Pipe$lensUpdater(lens),
-				commands(
-					lens.get(_p1)));
-		};
-	});
-var _user$project$Pipe$subscriptions = F2(
-	function (subscriptions, lens) {
-		return function (_p2) {
-			return A2(
-				_elm_lang$core$Platform_Sub$map,
-				_user$project$Pipe$lensUpdater(lens),
-				subscriptions(
-					lens.get(_p2)));
-		};
-	});
-var _user$project$Pipe$program = function (_p3) {
-	var _p4 = _p3;
-	var _p6 = _p4.model;
-	var _p5 = _p4.commands;
+var _user$project$Pipe$program = function (_p0) {
+	var _p1 = _p0;
+	var _p6 = _p1.init;
 	return _elm_lang$html$Html$program(
 		{
-			init: {
-				ctor: '_Tuple2',
-				_0: _p6,
-				_1: _p5(_p6)
-			},
-			subscriptions: _p4.subscriptions,
+			init: function () {
+				var _p2 = A2(_elm_lang$core$Debug$log, 'init ', _p6);
+				var _p3 = _p6;
+				var init_model = _p3._0;
+				var init_cmds = _p3._1;
+				return {ctor: '_Tuple2', _0: init_model, _1: init_cmds};
+			}(),
+			subscriptions: _p1.subscriptions,
 			update: F2(
-				function (updater, model) {
-					var new_model = updater(model);
+				function (_p4, model) {
+					var _p5 = _p4;
 					return {
 						ctor: '_Tuple2',
-						_0: new_model,
-						_1: _p5(new_model)
+						_0: _p5._0(model),
+						_1: _p5._1._0
 					};
 				}),
-			view: _p4.view
+			view: _p1.view
 		});
 };
-var _user$project$Pipe$Program = F4(
-	function (a, b, c, d) {
-		return {commands: a, model: b, subscriptions: c, view: d};
+var _user$project$Pipe$full = F2(
+	function (model, cmd) {
+		return {ctor: '_Tuple2', _0: model, _1: cmd};
+	});
+var _user$project$Pipe$pure = function (model) {
+	return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+};
+var _user$project$Pipe$Program = F3(
+	function (a, b, c) {
+		return {init: a, subscriptions: b, view: c};
 	});
 var _user$project$Pipe$Lens = F2(
 	function (a, b) {
 		return {get: a, set: b};
 	});
-var _user$project$Counter1$decrement = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{counter: m.counter - 1});
+var _user$project$Pipe$WorkerCmds = function (a) {
+	return {ctor: 'WorkerCmds', _0: a};
 };
-var _user$project$Counter1$increment = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{counter: m.counter + 1});
+var _user$project$Pipe$modify = function (f) {
+	return {
+		ctor: '_Tuple2',
+		_0: f,
+		_1: _user$project$Pipe$WorkerCmds(_elm_lang$core$Platform_Cmd$none)
+	};
 };
+var _user$project$Pipe$nestedUpdater = F2(
+	function (lens, _p7) {
+		var _p8 = _p7;
+		var _p10 = _p8._1._0;
+		var _p9 = _p8._0;
+		if (_p9.ctor === 'Nothing') {
+			return _user$project$Pipe$modify(
+				function (m) {
+					return A2(
+						lens.set,
+						_p10(
+							lens.get(m)),
+						m);
+				});
+		} else {
+			return _user$project$Pipe$modify(
+				function (m) {
+					return _p9._0._0(
+						A2(
+							lens.set,
+							_p10(
+								lens.get(m)),
+							m));
+				});
+		}
+	});
+var _user$project$Pipe$view_cb = F3(
+	function (view, cfg, lens) {
+		return function (_p11) {
+			return A2(
+				_elm_lang$html$Html$map,
+				_user$project$Pipe$nestedUpdater(lens),
+				A2(
+					view,
+					cfg,
+					lens.get(_p11)));
+		};
+	});
+var _user$project$Pipe$set = function (m) {
+	return {
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Basics$always(m),
+		_1: _user$project$Pipe$WorkerCmds(_elm_lang$core$Platform_Cmd$none)
+	};
+};
+var _user$project$Pipe$modify_and_cmd = F2(
+	function (f, c) {
+		return {
+			ctor: '_Tuple2',
+			_0: f,
+			_1: _user$project$Pipe$WorkerCmds(c)
+		};
+	});
+var _user$project$Pipe$lensUpdaterW = F2(
+	function (lens, _p12) {
+		var _p13 = _p12;
+		return {
+			ctor: '_Tuple2',
+			_0: A2(_user$project$Pipe$lensUpdater, lens, _p13._0),
+			_1: _user$project$Pipe$WorkerCmds(
+				A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_user$project$Pipe$lensUpdaterW(lens),
+					_p13._1._0))
+		};
+	});
+var _user$project$Pipe$map = function (lens) {
+	return _elm_lang$core$Platform_Cmd$map(
+		_user$project$Pipe$lensUpdaterW(lens));
+};
+var _user$project$Pipe$view = F2(
+	function (view, lens) {
+		return function (_p14) {
+			return A2(
+				_elm_lang$html$Html$map,
+				_user$project$Pipe$lensUpdaterW(lens),
+				view(
+					lens.get(_p14)));
+		};
+	});
+var _user$project$Pipe$subscriptions = F2(
+	function (subscriptions, lens) {
+		return function (_p15) {
+			return A2(
+				_elm_lang$core$Platform_Sub$map,
+				_user$project$Pipe$lensUpdaterW(lens),
+				subscriptions(
+					lens.get(_p15)));
+		};
+	});
+var _user$project$Counter1$reset = _user$project$Pipe$set(
+	{counter: 0});
+var _user$project$Counter1$decrement = _user$project$Pipe$modify(
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{counter: m.counter - 1});
+	});
+var _user$project$Counter1$increment = _user$project$Pipe$modify(
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{counter: m.counter + 1});
+	});
 var _user$project$Counter1$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -8774,26 +8856,48 @@ var _user$project$Counter1$view = function (model) {
 								_0: _elm_lang$html$Html$text('+'),
 								_1: {ctor: '[]'}
 							}),
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$button,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(_user$project$Counter1$reset),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Clear'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
 					}
 				}
 			}
 		});
 };
-var _user$project$Counter1$init = {counter: 0};
+var _user$project$Counter1$init = _user$project$Pipe$pure(
+	{counter: 1});
 var _user$project$Counter1$Model = function (a) {
 	return {counter: a};
 };
-var _user$project$Counter2$decrement = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{counter: m.counter - 1});
-};
-var _user$project$Counter2$increment = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{counter: m.counter + 1});
-};
+var _user$project$Counter2$ident = _user$project$Pipe$modify(
+	function (m) {
+		return m;
+	});
+var _user$project$Counter2$decrement = _user$project$Pipe$modify(
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{counter: m.counter - 1});
+	});
+var _user$project$Counter2$increment = _user$project$Pipe$modify(
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{counter: m.counter + 1});
+	});
 var _user$project$Counter2$view = F2(
 	function (config, model) {
 		return A2(
@@ -8870,7 +8974,7 @@ var _user$project$Counter2$view = F2(
 												{
 													ctor: '_Tuple2',
 													_0: _elm_lang$core$Maybe$Just(config.doIt),
-													_1: _elm_lang$core$Basics$identity
+													_1: _user$project$Counter2$ident
 												}),
 											_1: {ctor: '[]'}
 										},
@@ -8918,7 +9022,8 @@ var _user$project$Counter2$view = F2(
 				}
 			});
 	});
-var _user$project$Counter2$init = {counter: 0};
+var _user$project$Counter2$init = _user$project$Pipe$pure(
+	{counter: 2});
 var _user$project$Counter2$Model = function (a) {
 	return {counter: a};
 };
@@ -8932,16 +9037,33 @@ var _user$project$Delay$after = F2(
 			_elm_lang$core$Basics$always(msg),
 			_elm_lang$core$Process$sleep(time));
 	});
-var _user$project$Delay$CommandDelay = {ctor: 'CommandDelay'};
+var _user$project$Delay$Model = F4(
+	function (a, b, c, d) {
+		return {state1: a, state2: b, value1: c, value2: d};
+	});
+var _user$project$Delay$Done = {ctor: 'Done'};
+var _user$project$Delay$endDelay1 = _user$project$Pipe$modify(
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{state1: _user$project$Delay$Done, value1: m.value1 + 1});
+	});
+var _user$project$Delay$endDelay2 = _user$project$Pipe$modify(
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{state2: _user$project$Delay$Done, value2: m.value2 + 1});
+	});
+var _user$project$Delay$Started = {ctor: 'Started'};
+var _user$project$Delay$startDelay1 = A2(
+	_user$project$Pipe$modify_and_cmd,
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{state1: _user$project$Delay$Started});
+	},
+	A2(_user$project$Delay$after, 3000, _user$project$Delay$endDelay1));
 var _user$project$Delay$view = function (model) {
-	var disabled_key = function () {
-		var _p0 = model;
-		if (_p0.ctor === 'CommandDelay') {
-			return true;
-		} else {
-			return false;
-		}
-	}();
 	return A2(
 		_elm_lang$html$Html$div,
 		{ctor: '[]'},
@@ -8951,11 +9073,11 @@ var _user$project$Delay$view = function (model) {
 				_elm_lang$html$Html$button,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Events$onClick(
-						_elm_lang$core$Basics$always(_user$project$Delay$CommandDelay)),
+					_0: _elm_lang$html$Html_Events$onClick(_user$project$Delay$startDelay1),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$disabled(disabled_key),
+						_0: _elm_lang$html$Html_Attributes$disabled(
+							_elm_lang$core$Native_Utils.eq(model.state1, _user$project$Delay$Started)),
 						_1: {ctor: '[]'}
 					}
 				},
@@ -8979,111 +9101,27 @@ var _user$project$Delay$view = function (model) {
 			}
 		});
 };
-var _user$project$Delay$Value = function (a) {
-	return {ctor: 'Value', _0: a};
-};
-var _user$project$Delay$init = _user$project$Delay$Value(0);
-var _user$project$Delay$commands = function (model) {
-	var _p1 = model;
-	if (_p1.ctor === 'CommandDelay') {
-		return A2(
-			_user$project$Delay$after,
-			3000,
-			_elm_lang$core$Basics$always(
-				_user$project$Delay$Value(2)));
-	} else {
-		return _elm_lang$core$Platform_Cmd$none;
-	}
-};
-var _user$project$FullStack$simpleUpdater = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{counter: m.counter + 1});
-};
-var _user$project$FullStack$view = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('Full-stack component'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$span,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Simple internal method: '),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$button,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Events$onClick(_user$project$FullStack$simpleUpdater),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('+'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(
-								_elm_lang$core$Basics$toString(model)),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			}
-		});
-};
-var _user$project$FullStack$init = {time: 0, counter: 0};
-var _user$project$FullStack$Model = F2(
-	function (a, b) {
-		return {time: a, counter: b};
+var _user$project$Delay$Init = {ctor: 'Init'};
+var _user$project$Delay$init = A2(
+	_user$project$Pipe$full,
+	A4(_user$project$Delay$Model, _user$project$Delay$Init, _user$project$Delay$Started, 0, 0),
+	A2(_user$project$Delay$after, 3000, _user$project$Delay$endDelay2));
+var _user$project$Timer$init = _user$project$Pipe$pure(
+	{time: 0});
+var _user$project$Timer$increment = _user$project$Pipe$modify(
+	function (m) {
+		return _elm_lang$core$Native_Utils.update(
+			m,
+			{time: m.time + 1});
 	});
-var _user$project$Timer$init = {time: 0};
-var _user$project$Timer$increment = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{time: m.time + 1});
-};
 var _user$project$Timer$subscriptions = function (model) {
 	return A2(
 		_elm_lang$core$Time$every,
-		_elm_lang$core$Time$second,
+		100 * _elm_lang$core$Time$second,
 		_elm_lang$core$Basics$always(_user$project$Timer$increment));
 };
-var _user$project$Timer$reset = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{time: 0});
-};
+var _user$project$Timer$reset = _user$project$Pipe$set(
+	{time: 0});
 var _user$project$Timer$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -9131,18 +9169,22 @@ var _user$project$Timer$view = function (model) {
 var _user$project$Timer$Model = function (a) {
 	return {time: a};
 };
-var _user$project$Main$parentCmd = function (m) {
-	return _elm_lang$core$Native_Utils.update(
-		m,
-		{counter2_pcmd: m.counter2_pcmd + 1});
-};
-var _user$project$Main$fullstackUpdater = F2(
-	function (child_updater, m) {
+var _user$project$Main$counter2 = A2(
+	_user$project$Pipe$Lens,
+	function (_) {
+		return _.counter2;
+	},
+	F2(
+		function (v, m) {
+			return _elm_lang$core$Native_Utils.update(
+				m,
+				{counter2: v});
+		}));
+var _user$project$Main$parentCmd = _user$project$Pipe$modify(
+	function (m) {
 		return _elm_lang$core$Native_Utils.update(
 			m,
-			{
-				fullstack: child_updater(m.fullstack)
-			});
+			{counter2_pcmd: m.counter2_pcmd + 1});
 	});
 var _user$project$Main$timer = A2(
 	_user$project$Pipe$Lens,
@@ -9174,25 +9216,6 @@ var _user$project$Main$delay = A2(
 				m,
 				{delay: v});
 		}));
-var _user$project$Main$nestedCounter2Updater = function (_p0) {
-	var _p1 = _p0;
-	var updater = function (m) {
-		return _elm_lang$core$Native_Utils.update(
-			m,
-			{
-				counter2: _p1._1(m.counter2)
-			});
-	};
-	var _p2 = _p1._0;
-	if (_p2.ctor === 'Nothing') {
-		return updater;
-	} else {
-		return function (_p3) {
-			return _p2._0(
-				updater(_p3));
-		};
-	}
-};
 var _user$project$Main$counter1 = A2(
 	_user$project$Pipe$Lens,
 	function (_) {
@@ -9221,19 +9244,22 @@ var _user$project$Main$view = function (model) {
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text(
-								_elm_lang$core$Basics$toString(model.counter2_pcmd)),
-							_1: {ctor: '[]'}
+							_0: _elm_lang$html$Html$text('Parent: '),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(model.counter2_pcmd)),
+								_1: {ctor: '[]'}
+							}
 						}),
 					_1: {
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$map,
-							_user$project$Main$nestedCounter2Updater,
-							A2(
-								_user$project$Counter2$view,
-								{doIt: _user$project$Main$parentCmd},
-								model.counter2)),
+						_0: A4(
+							_user$project$Pipe$view_cb,
+							_user$project$Counter2$view,
+							{doIt: _user$project$Main$parentCmd},
+							_user$project$Main$counter2,
+							model),
 						_1: {
 							ctor: '::',
 							_0: A3(_user$project$Pipe$view, _user$project$Delay$view, _user$project$Main$delay, model),
@@ -9254,14 +9280,7 @@ var _user$project$Main$view = function (model) {
 													_elm_lang$core$Basics$toString(model))),
 											_1: {ctor: '[]'}
 										}),
-									_1: {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$map,
-											_user$project$Main$fullstackUpdater,
-											_user$project$FullStack$view(model.fullstack)),
-										_1: {ctor: '[]'}
-									}
+									_1: {ctor: '[]'}
 								}
 							}
 						}
@@ -9270,20 +9289,54 @@ var _user$project$Main$view = function (model) {
 			}
 		});
 };
-var _user$project$Main$init = {counter1: _user$project$Counter1$init, counter2: _user$project$Counter2$init, counter2_pcmd: 0, timer: _user$project$Timer$init, delay: _user$project$Delay$init, fullstack: _user$project$FullStack$init};
-var _user$project$Main$commands = function (model) {
-	return _elm_lang$core$Platform_Cmd$batch(
+var _user$project$Main$endDelay2 = _user$project$Pipe$modify(
+	function (m) {
+		var _p0 = A2(_elm_lang$core$Debug$log, 'Main end delay2', m);
+		return m;
+	});
+var _user$project$Main$after = F2(
+	function (time, msg) {
+		return A2(
+			_elm_lang$core$Task$perform,
+			_elm_lang$core$Basics$always(msg),
+			_elm_lang$core$Process$sleep(time));
+	});
+var _user$project$Main$endDelay = A2(
+	_user$project$Pipe$modify_and_cmd,
+	function (m) {
+		var _p1 = A2(_elm_lang$core$Debug$log, 'Main end delay 1', m);
+		return m;
+	},
+	A2(_user$project$Main$after, 3000, _user$project$Main$endDelay2));
+var _user$project$Main$init = function () {
+	var _p2 = A2(_elm_lang$core$Debug$log, 'Delay.init', _user$project$Delay$init);
+	var delay_model = _p2._0;
+	var delay_cmd = _p2._1;
+	return A2(
+		_user$project$Pipe$full,
 		{
-			ctor: '::',
-			_0: A3(_user$project$Pipe$commands, _user$project$Delay$commands, _user$project$Main$delay, model),
-			_1: {ctor: '[]'}
-		});
-};
+			counter1: _elm_lang$core$Tuple$first(_user$project$Counter1$init),
+			counter2: _elm_lang$core$Tuple$first(_user$project$Counter2$init),
+			counter2_pcmd: 0,
+			timer: _elm_lang$core$Tuple$first(_user$project$Timer$init),
+			delay: delay_model
+		},
+		_elm_lang$core$Platform_Cmd$batch(
+			{
+				ctor: '::',
+				_0: A2(_user$project$Main$after, 3000, _user$project$Main$endDelay),
+				_1: {
+					ctor: '::',
+					_0: A2(_user$project$Pipe$map, _user$project$Main$delay, delay_cmd),
+					_1: {ctor: '[]'}
+				}
+			}));
+}();
 var _user$project$Main$main = _user$project$Pipe$program(
-	{commands: _user$project$Main$commands, model: _user$project$Main$init, subscriptions: _user$project$Main$subscriptions, view: _user$project$Main$view})();
-var _user$project$Main$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {counter1: a, counter2: b, counter2_pcmd: c, timer: d, delay: e, fullstack: f};
+	{init: _user$project$Main$init, subscriptions: _user$project$Main$subscriptions, view: _user$project$Main$view})();
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {counter1: a, counter2: b, counter2_pcmd: c, timer: d, delay: e};
 	});
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
