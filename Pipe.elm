@@ -11,7 +11,9 @@ module Pipe
         , pure
         , Worker
         , modify
+        , modify_and_cmd
         , set
+        , WorkerCmds
         )
 
 import Html exposing (Html)
@@ -22,7 +24,7 @@ type alias Updater model =
 
 
 type alias Pipe model =
-    ( model, Cmd (Updater model) )
+    ( model, Cmd (Worker model) )
 
 
 pure : model -> Pipe model
@@ -30,18 +32,44 @@ pure model =
     ( model, Cmd.none )
 
 
+
+-- type alias Worker model =
+--     ( Updater model, Cmd (Worker model) )
+
+
 type alias Worker model =
-    ( Updater model, Cmd (Updater model) )
+    ( Updater model, WorkerCmds model )
+
+
+
+-- type alias Worker model =
+--     { updater : Updater model
+--     , cmds : WorkerCmds model
+--     }
+
+
+type WorkerCmds model
+    = WorkerCmds (Cmd (Worker model))
+
+
+
+-- type Worker model
+--     = Worker (_Tuple2 (Updater model) (Cmd (Worker model)))
 
 
 modify : Updater model -> Worker model
 modify f =
-    ( f, Cmd.none )
+    ( f, WorkerCmds Cmd.none )
+
+
+modify_and_cmd : Updater model -> Cmd (Worker model) -> Worker model
+modify_and_cmd f c =
+    ( f, WorkerCmds c )
 
 
 set : model -> Worker model
 set m =
-    ( always m, Cmd.none )
+    ( always m, WorkerCmds Cmd.none )
 
 
 type alias Program model =
@@ -61,26 +89,47 @@ program { init, subscriptions, view } =
             let
                 ( init_model, init_cmds ) =
                     init
+
+                _ =
+                    Debug.log "init " init
             in
-                ( init_model, Cmd.none )
+                ( init_model, init_cmds )
 
         -- always (model, Cmd.none)
         , subscriptions = always Sub.none
 
         -- , subscriptions = subscriptions
+        -- update : Worker model -> model -> Worker model
         , update =
-            \( updater, cmd ) model ->
+            \( updater, WorkerCmds cmd ) model ->
                 let
                     _ =
-                        Debug.log "new updater" ( updater, cmd, model )
+                        Debug.log "new updater" 0
 
                     nm =
                         updater model
 
                     _ =
                         Debug.log "new model" (nm)
+
+                    _ =
+                        Debug.log "cmd" cmd
+
+                    _ =
+                        Debug.log "cmd_none" Cmd.none
+
+                    --     let
+                    --         ( chmodel, chcmd ) =
+                    --             model |> lens.get |> commands
+                    --     in
+                    --         ( lens.set chmodel model
+                    --         , chcmd |> Cmd.map (lensUpdater lens)
+                    --         )
                 in
-                    ( nm, Cmd.none )
+                    ( nm, cmd )
+
+        -- ( nm, cmd )
+        -- ( nm, cmd |> Cmd.map (\( m, c ) -> m) )
         , view = view
         }
 
@@ -106,7 +155,7 @@ lensUpdaterW lens ( child_updater, child_cmd ) =
                 Debug.log "---updater" m
         in
             lens.set (child_updater (lens.get m)) m
-    , Cmd.none
+    , WorkerCmds Cmd.none
     )
 
 

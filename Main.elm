@@ -1,13 +1,30 @@
 module Main exposing (main)
 
 import Html exposing (Html)
-import Pipe exposing (Updater, Lens, lensUpdater, Pipe, pure, Worker, modify)
+import Pipe
+    exposing
+        ( Updater
+        , Lens
+        , lensUpdater
+        , Pipe
+        , pure
+        , Worker
+        , modify
+        , modify_and_cmd
+        , WorkerCmds
+        )
 import Counter1
+
+
+-- import Delay
+
+import Process
+import Task
+import Time exposing (Time, millisecond)
 
 
 -- import Counter2
 -- import Timer
--- import Delay
 -- import FullStack
 
 
@@ -31,17 +48,55 @@ type alias Model =
     }
 
 
+after : Time -> msg -> Cmd msg
+after time msg =
+    Process.sleep time
+        |> Task.perform (always msg)
+
+
 init : Pipe Model
 init =
-    pure
-        { counter1 = Tuple.first Counter1.init
+    -- pure
+    ( { counter1 = Tuple.first Counter1.init
 
-        -- , counter2 = Tuple.first Counter2.init
-        -- , counter2_pcmd = 0
-        -- , timer = Tuple.first Timer.init
-        -- , delay = Tuple.first Delay.init
-        -- , fullstack = Tuple.first FullStack.init
-        }
+      -- , counter2 = Tuple.first Counter2.init
+      -- , counter2_pcmd = 0
+      -- , timer = Tuple.first Timer.init
+      -- , delay = Tuple.first Delay.init
+      -- , fullstack = Tuple.first FullStack.init
+      }
+    , after 3000 endDelay
+    )
+
+
+endDelay : Worker Model
+endDelay =
+    modify_and_cmd
+        (\m ->
+            let
+                _ =
+                    Debug.log "Main end delay 1" m
+            in
+                m
+        )
+        (after 3000 endDelay2)
+
+
+endDelay2 : Worker Model
+endDelay2 =
+    modify
+        (\m ->
+            let
+                _ =
+                    Debug.log "Main end delay2" m
+            in
+                m
+        )
+
+
+
+-- , WorkerCmds Cmd.none
+-- )
 
 
 counter1 : Lens Model Counter1.Model
