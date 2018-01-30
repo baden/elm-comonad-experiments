@@ -5,10 +5,12 @@ module Pipe
         , Lens
         , lensUpdater
         , view
+        , map
           -- , command
         , subscriptions
         , Pipe
         , pure
+        , full
         , Worker
         , modify
         , modify_and_cmd
@@ -32,29 +34,17 @@ pure model =
     ( model, Cmd.none )
 
 
-
--- type alias Worker model =
---     ( Updater model, Cmd (Worker model) )
+full : model -> Cmd (Worker model) -> Pipe model
+full model cmd =
+    ( model, cmd )
 
 
 type alias Worker model =
     ( Updater model, WorkerCmds model )
 
 
-
--- type alias Worker model =
---     { updater : Updater model
---     , cmds : WorkerCmds model
---     }
-
-
 type WorkerCmds model
     = WorkerCmds (Cmd (Worker model))
-
-
-
--- type Worker model
---     = Worker (_Tuple2 (Updater model) (Cmd (Worker model)))
 
 
 modify : Updater model -> Worker model
@@ -62,19 +52,18 @@ modify f =
     ( f, WorkerCmds Cmd.none )
 
 
-modify_and_cmd : Updater model -> Cmd (Worker model) -> Worker model
-modify_and_cmd f c =
-    ( f, WorkerCmds c )
-
-
 set : model -> Worker model
 set m =
     ( always m, WorkerCmds Cmd.none )
 
 
+modify_and_cmd : Updater model -> Cmd (Worker model) -> Worker model
+modify_and_cmd f c =
+    ( f, WorkerCmds c )
+
+
 type alias Program model =
-    { --commands : model -> ( model, Cmd (Updater model) )
-      init : Pipe model
+    { init : Pipe model
     , subscriptions : model -> Sub (Worker model)
     , view : model -> Html (Worker model)
     }
@@ -94,42 +83,10 @@ program { init, subscriptions, view } =
                     Debug.log "init " init
             in
                 ( init_model, init_cmds )
-
-        -- always (model, Cmd.none)
-        -- , subscriptions = always Sub.none
         , subscriptions = subscriptions
-
-        -- update : Worker model -> model -> Worker model
         , update =
             \( updater, WorkerCmds cmd ) model ->
-                let
-                    _ =
-                        Debug.log "new updater" 0
-
-                    nm =
-                        updater model
-
-                    _ =
-                        Debug.log "new model" (nm)
-
-                    _ =
-                        Debug.log "cmd" cmd
-
-                    _ =
-                        Debug.log "cmd_none" Cmd.none
-
-                    --     let
-                    --         ( chmodel, chcmd ) =
-                    --             model |> lens.get |> commands
-                    --     in
-                    --         ( lens.set chmodel model
-                    --         , chcmd |> Cmd.map (lensUpdater lens)
-                    --         )
-                in
-                    ( nm, cmd )
-
-        -- ( nm, cmd )
-        -- ( nm, cmd |> Cmd.map (\( m, c ) -> m) )
+                ( updater model, cmd )
         , view = view
         }
 
@@ -145,11 +102,6 @@ lensUpdater lens child_updater =
     \m -> (m |> lens.get |> child_updater |> lens.set) m
 
 
-
--- \m ->
---     lens.set (child_updater (lens.get m)) m
-
-
 lensUpdaterW : Lens parentmodel childmodel -> Worker childmodel -> Worker parentmodel
 lensUpdaterW lens ( child_updater, WorkerCmds child_cmd ) =
     ( child_updater |> lensUpdater lens
@@ -159,13 +111,9 @@ lensUpdaterW lens ( child_updater, WorkerCmds child_cmd ) =
     )
 
 
-
--- analogue
--- view view lens model =
---     model
---         |> lens.get
---         |> view
---         |> Html.map (lensUpdater lens)
+map : Lens parentmodel childmodel -> Cmd (Worker childmodel) -> Cmd (Worker parentmodel)
+map lens =
+    Cmd.map (lensUpdaterW lens)
 
 
 view :
@@ -188,24 +136,3 @@ subscriptions subscriptions lens =
     lens.get
         >> subscriptions
         >> Sub.map (lensUpdaterW lens)
-
-
-
--- lensUpdater : Lens parentmodel childmodel -> Updater childmodel -> Updater parentmodel
--- lensUpdater lens child_updater =
---     \m -> (m |> lens.get |> child_updater |> lens.set) m
--- command :
---     (childmodel -> ( childmodel, Cmd (Updater childmodel) ))
---     -> Lens parentmodel childmodel
---     -> ( parentmodel, Cmd (Updater parentmodel) )
---     -> ( parentmodel, Cmd (Updater parentmodel) )
--- command commands lens ( model, cmds ) =
---     let
---         ( chmodel, chcmd ) =
---             model |> lens.get |> commands
---     in
---         ( lens.set chmodel model
---         , chcmd |> Cmd.map (lensUpdater lens)
---         )
---
---

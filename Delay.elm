@@ -6,7 +6,7 @@ import Html.Attributes exposing (disabled)
 import Process
 import Task
 import Time exposing (Time, millisecond)
-import Pipe exposing (Updater, Pipe, pure, Worker, modify, modify_and_cmd)
+import Pipe exposing (Updater, Pipe, full, Worker, modify, modify_and_cmd)
 
 
 type State
@@ -16,14 +16,18 @@ type State
 
 
 type alias Model =
-    { state : State
-    , value : Int
+    { state1 : State
+    , state2 : State
+    , value1 : Int
+    , value2 : Int
     }
 
 
 init : Pipe Model
 init =
-    pure (Model Init 0)
+    full
+        (Model Init Started 0 0)
+        (after 3000 endDelay2)
 
 
 after : Time -> msg -> Cmd msg
@@ -32,24 +36,29 @@ after time msg =
         |> Task.perform (always msg)
 
 
-startDelay : Worker Model
-startDelay =
+startDelay1 : Worker Model
+startDelay1 =
     modify_and_cmd
-        (\m -> { m | state = Started })
-        (after 3000 endDelay)
+        (\m -> { m | state1 = Started })
+        (after 3000 endDelay1)
 
 
-endDelay : Worker Model
-endDelay =
-    modify (\m -> { m | state = Done })
+endDelay1 : Worker Model
+endDelay1 =
+    modify (\m -> { m | state1 = Done, value1 = m.value1 + 1 })
+
+
+endDelay2 : Worker Model
+endDelay2 =
+    modify (\m -> { m | state2 = Done, value2 = m.value2 + 1 })
 
 
 view : Model -> Html (Worker Model)
 view model =
     div []
         [ button
-            [ onClick startDelay
-            , disabled (model.state == Started)
+            [ onClick startDelay1
+            , disabled (model.state1 == Started)
             ]
             [ text "Press me for delayed command" ]
         , span [] [ text <| toString model ]

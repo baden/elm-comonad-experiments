@@ -6,8 +6,10 @@ import Pipe
         ( Updater
         , Lens
         , lensUpdater
+        , map
         , Pipe
         , pure
+        , full
         , Worker
         , modify
         , modify_and_cmd
@@ -18,13 +20,10 @@ import Delay
 import Process
 import Task
 import Time exposing (Time, millisecond)
-
-
--- import Counter2
-
 import Timer
 
 
+-- import Counter2
 -- import FullStack
 
 
@@ -57,30 +56,37 @@ after time msg =
 
 init : Pipe Model
 init =
-    -- pure
-    ( { counter1 = Tuple.first Counter1.init
+    let
+        ( delay_model, delay_cmd ) =
+            Debug.log "Delay.init" Delay.init
+    in
+        full
+            { counter1 = Tuple.first Counter1.init
 
-      -- , counter2 = Tuple.first Counter2.init
-      -- , counter2_pcmd = 0
-      , timer = Tuple.first Timer.init
-      , delay = Tuple.first Delay.init
+            -- , counter2 = Tuple.first Counter2.init
+            -- , counter2_pcmd = 0
+            , timer = Tuple.first Timer.init
+            , delay = delay_model
 
-      -- , fullstack = Tuple.first FullStack.init
-      }
-      -- , after 3000 endDelay
-    , Cmd.none
-    )
+            -- , fullstack = Tuple.first FullStack.init
+            }
+            -- Cmd.none
+            (Cmd.batch
+                [ (after 3000 endDelay)
+                , delay_cmd |> Pipe.map delay
+                ]
+            )
 
 
 endDelay : Worker Model
 endDelay =
     modify_and_cmd
         (\m ->
-            -- let
-            --     _ =
-            --         Debug.log "Main end delay 1" m
-            -- in
-            m
+            let
+                _ =
+                    Debug.log "Main end delay 1" m
+            in
+                m
         )
         (after 3000 endDelay2)
 
@@ -89,11 +95,11 @@ endDelay2 : Worker Model
 endDelay2 =
     modify
         (\m ->
-            -- let
-            --     _ =
-            --         Debug.log "Main end delay2" m
-            -- in
-            m
+            let
+                _ =
+                    Debug.log "Main end delay2" m
+            in
+                m
         )
 
 
@@ -176,41 +182,6 @@ view model =
         --     |> Html.map fullstackUpdater
         , Html.div [] [ Html.text <| "Model: " ++ toString model ]
         ]
-
-
-
--- commands : Model -> ( Model, Cmd (Updater Model) )
--- commands model =
---     let
---         -- lens =
---         --     delay
---         ( delay_model, delay_cmds ) =
---             Delay.commands model.delay
---
---         -- |> Cmd.map (lensUpdater lens)
---         _ =
---             Debug.log "pipe1" ( delay_model, delay_cmds )
---     in
---         ( { model | delay = delay_model }
---           -- , Cmd.none
---         , Cmd.batch
---             [ delay_cmds
---                 |> Cmd.map
---                     (\delay_updater ->
---                         \m ->
---                             let
---                                 _ =
---                                     Debug.log "subdelay" 0
---                             in
---                                 { m | delay = delay_updater m.delay }
---                     )
---             ]
---         )
--- commands : Model -> ( Model, Cmd (Updater Model) )
--- commands model =
---     -- Pipe.commands Delay.commands delay model
---     ( model, Cmd.none )
---         |> Pipe.command Delay.commands delay
 
 
 subscriptions : Model -> Sub (Worker Model)
