@@ -5,7 +5,7 @@ module Pipe
         , Lens
         , lensUpdater
         , view
-          -- , commands
+        , command
         , subscriptions
         )
 
@@ -80,15 +80,24 @@ view view lens =
 
 
 
--- commands :
---     (childmodel -> ( childmodel, Cmd (Updater childmodel) ))
---     -> Lens parentmodel childmodel
---     -> parentmodel
---     -> ( parentmodel, Cmd (Updater parentmodel) )
--- commands commands lens =
---     lens.get
---         >> commands
---         >> Cmd.map (lensUpdater lens)
+-- lensUpdater : Lens parentmodel childmodel -> Updater childmodel -> Updater parentmodel
+-- lensUpdater lens child_updater =
+--     \m -> (m |> lens.get |> child_updater |> lens.set) m
+
+
+command :
+    (childmodel -> ( childmodel, Cmd (Updater childmodel) ))
+    -> Lens parentmodel childmodel
+    -> ( parentmodel, Cmd (Updater parentmodel) )
+    -> ( parentmodel, Cmd (Updater parentmodel) )
+command commands lens ( model, cmds ) =
+    let
+        ( chmodel, chcmd ) =
+            model |> lens.get |> commands
+    in
+        ( lens.set chmodel model
+        , chcmd |> Cmd.map (lensUpdater lens)
+        )
 
 
 subscriptions :

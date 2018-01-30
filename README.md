@@ -15,3 +15,4 @@
 ### Що далі
 
 Я хочу спробувати додати Lens (Optics)
+Ще треба глянути на http://package.elm-lang.org/packages/chrilves/elm-io/latest
