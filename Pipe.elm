@@ -15,6 +15,7 @@ module Pipe
         , modify
         , modify_and_cmd
         , set
+          -- temporary
         , WorkerCmds
         )
 
@@ -125,6 +126,24 @@ view view lens =
     lens.get
         >> view
         >> Html.map (lensUpdaterW lens)
+
+
+
+-- type alias Config msg =
+--     { doIt : msg
+--     }
+--
+--
+-- view_with_config :
+--     Config pmsg
+--     -> (childmodel -> Html ( Maybe pmsg, Worker childmodel ))
+--     -> Lens parentmodel childmodel
+--     -> parentmodel
+--     -> Html (Worker parentmodel)
+-- view_with_config view config lens =
+--     lens.get
+--         >> view config
+--         >> Html.map (lensUpdaterW lens)
 
 
 subscriptions :

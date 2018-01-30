@@ -1,8 +1,8 @@
 module Counter2 exposing (..)
 
+import Pipe exposing (Updater, Pipe, pure, Worker, modify)
 import Html exposing (Html)
 import Html.Events
-import Pipe exposing (Updater, Pipe, pure)
 
 
 type alias Model =
@@ -20,17 +20,22 @@ init =
     pure { counter = 2 }
 
 
-increment : Updater Model
-increment m =
-    { m | counter = m.counter + 1 }
+increment : Worker Model
+increment =
+    modify (\m -> { m | counter = m.counter + 1 })
 
 
-decrement : Updater Model
-decrement m =
-    { m | counter = m.counter - 1 }
+decrement : Worker Model
+decrement =
+    modify (\m -> { m | counter = m.counter - 1 })
 
 
-view : Config pmsg -> Model -> Html ( Maybe pmsg, Updater Model )
+ident : Worker Model
+ident =
+    modify (\m -> m)
+
+
+view : Config pmsg -> Model -> Html ( Maybe pmsg, Worker Model )
 view config model =
     Html.div
         []
@@ -49,7 +54,7 @@ view config model =
             []
             [ Html.text " toParent:" ]
         , Html.button
-            [ Html.Events.onClick <| ( Just config.doIt, identity ) ]
+            [ Html.Events.onClick <| ( Just config.doIt, ident ) ]
             [ Html.text "Do it!" ]
         , Html.span
             []
