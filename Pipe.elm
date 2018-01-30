@@ -6,7 +6,7 @@ module Pipe
         , lensUpdater
         , view
           -- , command
-          -- , subscriptions
+        , subscriptions
         , Pipe
         , pure
         , Worker
@@ -75,7 +75,7 @@ set m =
 type alias Program model =
     { --commands : model -> ( model, Cmd (Updater model) )
       init : Pipe model
-    , subscriptions : model -> Sub (Updater model)
+    , subscriptions : model -> Sub (Worker model)
     , view : model -> Html (Worker model)
     }
 
@@ -96,9 +96,9 @@ program { init, subscriptions, view } =
                 ( init_model, init_cmds )
 
         -- always (model, Cmd.none)
-        , subscriptions = always Sub.none
+        -- , subscriptions = always Sub.none
+        , subscriptions = subscriptions
 
-        -- , subscriptions = subscriptions
         -- update : Worker model -> model -> Worker model
         , update =
             \( updater, WorkerCmds cmd ) model ->
@@ -179,6 +179,17 @@ view view lens =
         >> Html.map (lensUpdaterW lens)
 
 
+subscriptions :
+    (childmodel -> Sub (Worker childmodel))
+    -> Lens parentmodel childmodel
+    -> parentmodel
+    -> Sub (Worker parentmodel)
+subscriptions subscriptions lens =
+    lens.get
+        >> subscriptions
+        >> Sub.map (lensUpdaterW lens)
+
+
 
 -- lensUpdater : Lens parentmodel childmodel -> Updater childmodel -> Updater parentmodel
 -- lensUpdater lens child_updater =
@@ -198,12 +209,3 @@ view view lens =
 --         )
 --
 --
--- subscriptions :
---     (childmodel -> Sub (Updater childmodel))
---     -> Lens parentmodel childmodel
---     -> parentmodel
---     -> Sub (Updater parentmodel)
--- subscriptions subscriptions lens =
---     lens.get
---         >> subscriptions
---         >> Sub.map (lensUpdater lens)

@@ -3,7 +3,7 @@ module Timer exposing (..)
 import Time exposing (Time, second)
 import Html exposing (..)
 import Html.Events exposing (onClick)
-import Pipe exposing (Updater, Pipe, pure)
+import Pipe exposing (Updater, Pipe, pure, Worker, modify, set)
 
 
 type alias Model =
@@ -11,29 +11,27 @@ type alias Model =
     }
 
 
-reset : Model -> Model
-reset m =
-    { m | time = 0 }
+reset : Worker Model
+reset =
+    set { time = 0 }
 
 
-increment : Model -> Model
-increment m =
-    { m | time = m.time + 1 }
+increment : Worker Model
+increment =
+    modify (\m -> { m | time = m.time + 1 })
 
 
 init : Pipe Model
 init =
-    pure
-        { time = 0
-        }
+    pure { time = 0 }
 
 
-subscriptions : Model -> Sub (Updater Model)
+subscriptions : Model -> Sub (Worker Model)
 subscriptions model =
     Time.every (100 * second) <| always increment
 
 
-view : Model -> Html (Updater Model)
+view : Model -> Html (Worker Model)
 view model =
     div []
         [ span [] [ text "Timer:" ]

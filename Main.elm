@@ -21,7 +21,10 @@ import Time exposing (Time, millisecond)
 
 
 -- import Counter2
--- import Timer
+
+import Timer
+
+
 -- import FullStack
 
 
@@ -39,7 +42,7 @@ type alias Model =
 
     -- , counter2 : Counter2.Model
     -- , counter2_pcmd : Int
-    -- , timer : Timer.Model
+    , timer : Timer.Model
     , delay : Delay.Model
 
     -- , fullstack : FullStack.Model
@@ -59,7 +62,7 @@ init =
 
       -- , counter2 = Tuple.first Counter2.init
       -- , counter2_pcmd = 0
-      -- , timer = Tuple.first Timer.init
+      , timer = Tuple.first Timer.init
       , delay = Tuple.first Delay.init
 
       -- , fullstack = Tuple.first FullStack.init
@@ -135,9 +138,14 @@ delay =
 
 --
 --
--- timer : Lens Model Timer.Model
--- timer =
---     Lens .timer (\v m -> { m | timer = v })
+
+
+timer : Lens Model Timer.Model
+timer =
+    Lens .timer (\v m -> { m | timer = v })
+
+
+
 --
 --
 -- fullstackUpdater : Updater FullStack.Model -> Updater Model
@@ -162,8 +170,8 @@ view model =
         -- , Counter2.view { doIt = parentCmd } model.counter2
         --     |> Html.map nestedCounter2Updater
         , Pipe.view Delay.view delay model
+        , Pipe.view Timer.view timer model
 
-        -- , Pipe.view Timer.view timer model
         -- , FullStack.view model.fullstack
         --     |> Html.map fullstackUpdater
         , Html.div [] [ Html.text <| "Model: " ++ toString model ]
@@ -205,12 +213,9 @@ view model =
 --         |> Pipe.command Delay.commands delay
 
 
-subscriptions : Model -> Sub (Updater Model)
+subscriptions : Model -> Sub (Worker Model)
 subscriptions model =
-    Sub.none
-
-
-
--- Sub.batch
---     [ Pipe.subscriptions Timer.subscriptions timer model
---     ]
+    -- Sub.none
+    Sub.batch
+        [ Pipe.subscriptions Timer.subscriptions timer model
+        ]

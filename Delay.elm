@@ -26,19 +26,6 @@ init =
     pure (Model Init 0)
 
 
-
--- ( Model Init 0
--- , after 3000 endDelay
---   --     (\m ->
---   --         let
---   --             _ =
---   --                 Debug.log "WTF?" m
---   --         in
---   --             m
---   --     )
--- )
-
-
 after : Time -> msg -> Cmd msg
 after time msg =
     Process.sleep time
@@ -52,49 +39,9 @@ startDelay =
         (after 3000 endDelay)
 
 
-
--- , after 3000
---     (\m ->
---         let
---             _ =
---                 Debug.log "WTF?" m
---         in
---             m
---     )
--- , Cmd.none
-
-
 endDelay : Worker Model
 endDelay =
-    modify
-        (\m ->
-            let
-                _ =
-                    Debug.log "------------------" m
-            in
-                { m | state = Done }
-        )
-
-
-
--- commands : Model -> ( Model, Cmd (Updater Model) )
--- commands model =
---     case model of
---         StartDelay ->
---             let
---                 _ =
---                     Debug.log "start delay" 0
---             in
---                 ( DelayInProgress, after 3000 (always <| Value 2) )
---
---         DelayInProgress ->
---             ( model, Cmd.none )
---
---         Value _ ->
---             ( model, Cmd.none )
--- start_delay : Updater Model
--- start_delay =
---     (always StartDelay)
+    modify (\m -> { m | state = Done })
 
 
 view : Model -> Html (Worker Model)
